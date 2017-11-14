@@ -5,6 +5,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -44,17 +46,24 @@ public class Main extends Application {
         stage.setOnCloseRequest((WindowEvent we) -> exitPrompt(we));
         stage.show();
 
-        VBox topPane = new VBox(20);
+        HBox topPane = new HBox(70);
         topPane.setPadding(new Insets(20));
-        Label titleLabel = new Label("Pizza Project");
+
+        ImageView pizzaImage1 = new ImageView(new Image("pizza1.png"));
+        topPane.getChildren().add(pizzaImage1);
+
+        Label titleLabel = new Label("Pizza Designer");
         titleLabel.getStyleClass().add("title");
         topPane.getChildren().add(titleLabel);
         root.setTop(topPane);
         topPane.setAlignment(Pos.CENTER);
         BorderPane.setAlignment(topPane, Pos.TOP_CENTER);
 
+        ImageView pizzaImage2 = new ImageView(new Image("pizza2.png"));
+        topPane.getChildren().add(pizzaImage2);
+
         VBox leftPane = new VBox(20);
-        leftPane.setPadding(new Insets(20));
+        leftPane.setPadding(new Insets(30));
         Label pizzaHeading = new Label("Pizzas:");
         pizzaHeading.getStyleClass().add("heading");
         leftPane.getChildren().add(pizzaHeading);
@@ -71,7 +80,7 @@ public class Main extends Application {
         BorderPane.setAlignment(leftPane, Pos.CENTER_LEFT);
 
         VBox centerPane = new VBox(20);
-        centerPane.setPadding(new Insets(20));
+        centerPane.setPadding(new Insets(30));
         Label pizzaToppingsHeading = new Label("Toppings Applied:");
         pizzaToppingsHeading.getStyleClass().add("heading");
         centerPane.getChildren().add(pizzaToppingsHeading);
@@ -92,7 +101,7 @@ public class Main extends Application {
         BorderPane.setAlignment(centerPane, Pos.CENTER);
 
         VBox rightPane = new VBox(20);
-        rightPane.setPadding(new Insets(20));
+        rightPane.setPadding(new Insets(30));
         Label toppingHeading = new Label("Available Toppings:");
         toppingHeading.getStyleClass().add("heading");
         rightPane.getChildren().add(toppingHeading);
@@ -107,7 +116,7 @@ public class Main extends Application {
 
         HBox bottomPane = new HBox(20);
         bottomPane.setAlignment(Pos.CENTER_LEFT);
-        bottomPane.setPadding(new Insets(20));
+        bottomPane.setPadding(new Insets(30));
 
         HBox bottomPaneRight = new HBox(20);
         HBox.setHgrow(bottomPaneRight, Priority.ALWAYS);

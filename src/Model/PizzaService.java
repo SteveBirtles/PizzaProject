@@ -9,7 +9,7 @@ public class PizzaService {
 
     public static void selectAll(List<Pizza> targetList, DatabaseConnection database) {
 
-        PreparedStatement statement = database.newStatement("SELECT id, name FROM Pizzas");
+        PreparedStatement statement = database.newStatement("SELECT id, name FROM Pizzas ORDER BY name");
 
         try {
             if (statement != null) {

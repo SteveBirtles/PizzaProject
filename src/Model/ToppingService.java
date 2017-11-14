@@ -9,7 +9,7 @@ public class ToppingService {
 
     public static void selectAll(List<Topping> targetList, DatabaseConnection database) {
 
-        PreparedStatement statement = database.newStatement("SELECT id, name FROM Toppings");
+        PreparedStatement statement = database.newStatement("SELECT id, name FROM Toppings ORDER BY name");
 
         try {
             if (statement != null) {
