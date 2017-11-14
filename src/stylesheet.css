@@ -1,0 +1,23 @@
+.title {
+    -fx-text-fill: navy;
+    -fx-font-size: 40;
+    -fx-font-family: "Arial Black";
+}
+
+.heading {
+    -fx-text-fill: black;
+    -fx-font-size: 20;
+    -fx-font-family: "Arial";
+}
+
+.add_button {
+    -fx-pref-width: 200;
+    -fx-font-size: 16;
+    -fx-text-fill: darkgreen;
+}
+
+.delete_button {
+    -fx-pref-width: 200;
+    -fx-font-size: 16;
+    -fx-text-fill: red;
+}
