@@ -1,10 +1,13 @@
-import Model.*;
+import Controller.MainController;
+import Model.Pizza;
+import Model.Topping;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -14,315 +17,142 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-import java.util.ArrayList;
-import java.util.Optional;
-
 public class Main extends Application {
 
-    public static DatabaseConnection database;
+    private static MainController controller;
 
-    private static ListView<Pizza> pizzaList;
-    private static ListView<Topping> pizzaToppingList;
-    private static ListView<Topping> toppingList;
+    private static ListView<Pizza> pizzaList = new ListView<>();
+    private static ListView<Topping> pizzaToppingList = new ListView<>();
+    private static ListView<Topping> toppingList = new ListView<>();
 
-    private static ArrayList<Topping> allToppings;
-    private static ArrayList<PizzaTopping> currentToppings;
+    /**
+     * Here is the start point of the program.
+     * A controller object is instantiated and the JavaFX process is launched.
+     */
+
+    public static void main(String[] args) {
+
+        controller = new MainController(pizzaList, pizzaToppingList, toppingList);
+
+        launch(args);
+    }
+
+    /**
+     * This is the method automatically called by the JavaFX process to create
+     * the stage and the scene and populate them. The events (e.g. button clicks)
+     * are all wired up to call the appropriate controller methods.
+     */
 
     @Override
     public void start(Stage stage) throws Exception {
 
-        database = new DatabaseConnection("PizzaDatabase.db");
-        currentToppings = new ArrayList<>();
-        allToppings = new ArrayList<>();
+        /* First, create the root BorderPane for the scene and set up the stage. */
 
         BorderPane root = new BorderPane();
-
         Scene scene = new Scene(root, 1024, 768);
         scene.getStylesheets().add("stylesheet.css");
-
         stage.setTitle("Pizza Project");
         stage.setResizable(false);
         stage.setScene(scene);
-        stage.setOnCloseRequest((WindowEvent we) -> exitPrompt(we));
+        stage.setOnCloseRequest((WindowEvent we) -> controller.exitPrompt(we));
         stage.show();
+
+        /* Top section of root BorderPane, containing the title. */
 
         HBox topPane = new HBox(70);
         topPane.setPadding(new Insets(20));
-
         ImageView pizzaImage1 = new ImageView(new Image("pizza1.png"));
         topPane.getChildren().add(pizzaImage1);
-
         Label titleLabel = new Label("Pizza Designer");
         titleLabel.getStyleClass().add("title");
         topPane.getChildren().add(titleLabel);
         root.setTop(topPane);
         topPane.setAlignment(Pos.CENTER);
         BorderPane.setAlignment(topPane, Pos.TOP_CENTER);
-
         ImageView pizzaImage2 = new ImageView(new Image("pizza2.png"));
         topPane.getChildren().add(pizzaImage2);
+
+        /* Left section of root BorderPane, containing the list of pizzas. */
 
         VBox leftPane = new VBox(20);
         leftPane.setPadding(new Insets(30));
         Label pizzaHeading = new Label("Pizzas:");
         pizzaHeading.getStyleClass().add("heading");
         leftPane.getChildren().add(pizzaHeading);
-        pizzaList = new ListView<>();
         pizzaList.setPrefWidth(280);
         pizzaList.setPrefHeight(500);
-
-        pizzaList.getSelectionModel().selectedItemProperty()
-                .addListener((observable, oldValue, newValue) -> pizzaSelected(newValue));
-
+        pizzaList.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) -> controller.pizzaSelected(newValue)
+        );
         leftPane.getChildren().add(pizzaList);
         root.setLeft(leftPane);
         leftPane.setAlignment(Pos.TOP_CENTER);
         BorderPane.setAlignment(leftPane, Pos.CENTER_LEFT);
+
+        /* Centre section of root BorderPane, containing the list of toppings on the current pizza. */
 
         VBox centerPane = new VBox(20);
         centerPane.setPadding(new Insets(30));
         Label pizzaToppingsHeading = new Label("Toppings Applied:");
         pizzaToppingsHeading.getStyleClass().add("heading");
         centerPane.getChildren().add(pizzaToppingsHeading);
-        pizzaToppingList = new ListView<>();
         pizzaToppingList.setMaxWidth(280);
         pizzaToppingList.setPrefHeight(400);
         centerPane.getChildren().add(pizzaToppingList);
         Button applyToppingButton = new Button("Apply topping");
         applyToppingButton.getStyleClass().add("add_button");
-        applyToppingButton.setOnAction((event) -> applyTopping());
+        applyToppingButton.setOnAction((event) -> controller.applyTopping());
         centerPane.getChildren().add(applyToppingButton);
         Button removeToppingButton = new Button("Remove topping");
         removeToppingButton.getStyleClass().add("delete_button");
-        removeToppingButton.setOnAction((event) -> removeTopping());
+        removeToppingButton.setOnAction((event) -> controller.removeTopping());
         centerPane.getChildren().add(removeToppingButton);
         root.setCenter(centerPane);
         centerPane.setAlignment(Pos.TOP_CENTER);
         BorderPane.setAlignment(centerPane, Pos.CENTER);
+
+        /* Right section of root BorderPane, containing the list of toppings available. */
 
         VBox rightPane = new VBox(20);
         rightPane.setPadding(new Insets(30));
         Label toppingHeading = new Label("Available Toppings:");
         toppingHeading.getStyleClass().add("heading");
         rightPane.getChildren().add(toppingHeading);
-        toppingList = new ListView<>();
         toppingList.setPrefWidth(280);
         toppingList.setPrefHeight(500);
-        toppingList.setItems(FXCollections.observableArrayList(allToppings));
         rightPane.getChildren().add(toppingList);
         root.setRight(rightPane);
         rightPane.setAlignment(Pos.TOP_CENTER);
         BorderPane.setAlignment(rightPane, Pos.CENTER_RIGHT);
 
+        /* Bottom section of root BorderPane, containing the buttons to create and delete pizzas and toppings. */
+
         HBox bottomPane = new HBox(20);
         bottomPane.setAlignment(Pos.CENTER_LEFT);
         bottomPane.setPadding(new Insets(30));
-
         HBox bottomPaneRight = new HBox(20);
         HBox.setHgrow(bottomPaneRight, Priority.ALWAYS);
         bottomPaneRight.setAlignment(Pos.CENTER_RIGHT);
-
         Button addPizzaButton = new Button("Create new pizza");
         addPizzaButton.getStyleClass().add("add_button");
-        addPizzaButton.setOnAction((event) -> createNewPizza());
+        addPizzaButton.setOnAction((event) -> controller.createNewPizza());
         bottomPane.getChildren().add(addPizzaButton);
-
         Button deletePizzaButton = new Button("Delete selected pizza");
         deletePizzaButton.getStyleClass().add("delete_button");
-        deletePizzaButton.setOnAction((event) -> deletePizza());
+        deletePizzaButton.setOnAction((event) -> controller.deletePizza());
         bottomPane.getChildren().add(deletePizzaButton);
-
         Button addToppingButton = new Button("Create new topping");
         addToppingButton.getStyleClass().add("add_button");
-        addToppingButton.setOnAction((event) -> createNewTopping());
+        addToppingButton.setOnAction((event) -> controller.createNewTopping());
         bottomPaneRight.getChildren().add(addToppingButton);
-
         Button deleteToppingButton = new Button("Delete selected topping");
         deleteToppingButton.getStyleClass().add("delete_button");
-        deleteToppingButton.setOnAction((event) -> deleteTopping());
+        deleteToppingButton.setOnAction((event) -> controller.deleteTopping());
         bottomPaneRight.getChildren().add(deleteToppingButton);
-
         bottomPane.getChildren().add(bottomPaneRight);
         root.setBottom(bottomPane);
         BorderPane.setAlignment(bottomPane, Pos.BOTTOM_CENTER);
 
-        updateLists(0, 0);
-
     }
 
-    public static void main(String[] args) {
-
-        launch(args);
-
-    }
-
-    @SuppressWarnings("Duplicates")
-    public static void updateLists(int selectedPizzaId, int selectedToppingId) {
-
-        allToppings.clear();
-        ToppingService.selectAll(allToppings, database);
-        toppingList.setItems(FXCollections.observableArrayList(allToppings));
-
-        pizzaList.getItems().clear();
-        PizzaService.selectAll(pizzaList.getItems(), database);
-
-        if (selectedPizzaId != 0) {
-            for (int n = 0; n < pizzaList.getItems().size(); n++) {
-                if (pizzaList.getItems().get(n).getId() == selectedPizzaId) {
-                    pizzaList.getSelectionModel().select(n);
-                    pizzaList.getFocusModel().focus(n);
-                    pizzaList.scrollTo(n);
-                    break;
-                }
-            }
-        }
-
-        if (selectedToppingId != 0) {
-            for (int n = 0; n < toppingList.getItems().size(); n++) {
-                if (toppingList.getItems().get(n).getId() == selectedToppingId) {
-                    toppingList.getSelectionModel().select(n);
-                    toppingList.getFocusModel().focus(n);
-                    toppingList.scrollTo(n);
-                    break;
-                }
-            }
-        }
-    }
-
-    public static void pizzaSelected(Pizza selectedPizza)
-    {
-        currentToppings.clear();
-
-        ArrayList<Integer> currentToppingIds = new ArrayList<>();
-
-        if (selectedPizza != null) {
-            PizzaService.selectPizzaToppings(selectedPizza, currentToppings, database);
-            for (PizzaTopping pt : currentToppings) {
-                currentToppingIds.add(pt.getToppingId());
-            }
-        }
-
-        pizzaToppingList.getItems().clear();
-        toppingList.getItems().clear();
-
-        for (Topping t: allToppings) {
-            if (currentToppingIds.contains(t.getId())) {
-                pizzaToppingList.getItems().add(t);
-            }
-            else {
-                toppingList.getItems().add(t);
-            }
-        }
-
-    }
-
-    public static void createNewPizza() {
-
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Create new pizza");
-        dialog.setHeaderText(null);
-        dialog.setContentText("Pizza's name:");
-
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()){
-            Pizza newPizza = new Pizza(0, result.get());
-            PizzaService.save(newPizza, database);
-
-            Topping selectedTopping = toppingList.getSelectionModel().getSelectedItem();
-            updateLists(database.lastNewId(), selectedTopping != null ? selectedTopping.getId() : 0);
-        }
-
-    }
-
-    public static void deletePizza() {
-
-        Pizza selectedPizza = pizzaList.getSelectionModel().getSelectedItem();
-
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete pizza");
-        alert.setHeaderText(null);
-        alert.setContentText("Are you sure you want to delete " + selectedPizza + "?");
-
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK){
-            PizzaService.deleteById(selectedPizza.getId(), database);
-            PizzaService.deletePizzaToppingsByPizzaId(selectedPizza.getId(), database);
-
-            Topping selectedTopping = toppingList.getSelectionModel().getSelectedItem();
-            updateLists(0, selectedTopping != null ? selectedTopping.getId() : 0);
-        }
-
-    }
-
-    public static void createNewTopping() {
-
-
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Create new topping");
-        dialog.setHeaderText(null);
-        dialog.setContentText("Topping's name:");
-
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()){
-            Topping newTopping = new Topping(0, result.get());
-            ToppingService.save(newTopping, database);
-
-            Pizza selectedPizza = pizzaList.getSelectionModel().getSelectedItem();
-            updateLists(selectedPizza != null ? selectedPizza.getId() : 0, database.lastNewId());
-        }
-
-    }
-
-    public static void deleteTopping() {
-
-        Topping selectedTopping = toppingList.getSelectionModel().getSelectedItem();
-
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete topping");
-        alert.setHeaderText(null);
-        alert.setContentText("Are you sure you want to delete " + selectedTopping + "?");
-
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK){
-            ToppingService.deleteById(selectedTopping.getId(), database);
-            ToppingService.deletePizzaToppingsByToppingId(selectedTopping.getId(), database);
-
-            Pizza selectedPizza = pizzaList.getSelectionModel().getSelectedItem();
-            updateLists(selectedPizza != null ? selectedPizza.getId() : 0, 0);
-        }
-
-    }
-
-    public static void applyTopping() {
-        Pizza selectedPizza = pizzaList.getSelectionModel().getSelectedItem();
-        Topping selectedTopping = toppingList.getSelectionModel().getSelectedItem();
-        if (selectedPizza == null || selectedTopping == null) return;
-        PizzaTopping newTopping = new PizzaTopping(selectedPizza.getId(), selectedTopping.getId());
-        PizzaService.savePizzaTopping(newTopping, database);
-        updateLists(selectedPizza != null ? selectedPizza.getId() : 0, 0);
-    }
-
-    public static void removeTopping() {
-        Pizza selectedPizza = pizzaList.getSelectionModel().getSelectedItem();
-        Topping selectedPizzaTopping = pizzaToppingList.getSelectionModel().getSelectedItem();
-        if (selectedPizza == null || selectedPizzaTopping == null) return;
-        PizzaService.deletePizzaTopping(selectedPizza.getId(), selectedPizzaTopping.getId(), database);
-        updateLists(selectedPizza != null ? selectedPizza.getId() : 0, selectedPizzaTopping.getId());
-    }
-
-    public static void exitPrompt(WindowEvent we) {
-
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Exit Pizza Project");
-        alert.setHeaderText("Are you sure you want to exit?");
-
-        Optional result = alert.showAndWait();
-        if (result.get() == ButtonType.OK){
-            database.disconnect();
-            System.exit(0);
-        } else {
-            we.consume();
-        }
-
-    }
 }
