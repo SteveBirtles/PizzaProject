@@ -50,7 +50,7 @@ public class Main extends Application {
 
         BorderPane root = new BorderPane();
         Scene scene = new Scene(root, 1024, 768);
-        scene.getStylesheets().add("stylesheet.css");
+        scene.getStylesheets().add("Resources/stylesheet.css");
         stage.setTitle("Pizza Project");
         stage.setResizable(false);
         stage.setScene(scene);
@@ -61,7 +61,7 @@ public class Main extends Application {
 
         HBox topPane = new HBox(70);
         topPane.setPadding(new Insets(20));
-        ImageView pizzaImage1 = new ImageView(new Image("pizza1.png"));
+        ImageView pizzaImage1 = new ImageView(new Image("Resources/pizza1.png"));
         topPane.getChildren().add(pizzaImage1);
         Label titleLabel = new Label("Pizza Designer");
         titleLabel.getStyleClass().add("title");
@@ -69,7 +69,7 @@ public class Main extends Application {
         root.setTop(topPane);
         topPane.setAlignment(Pos.CENTER);
         BorderPane.setAlignment(topPane, Pos.TOP_CENTER);
-        ImageView pizzaImage2 = new ImageView(new Image("pizza2.png"));
+        ImageView pizzaImage2 = new ImageView(new Image("Resources/pizza2.png"));
         topPane.getChildren().add(pizzaImage2);
 
         /* Left section of root BorderPane, containing the list of pizzas. */
@@ -137,7 +137,7 @@ public class Main extends Application {
         addPizzaButton.getStyleClass().add("add_button");
         addPizzaButton.setOnAction((event) -> controller.createNewPizza());
         bottomPane.getChildren().add(addPizzaButton);
-        Button deletePizzaButton = new Button("Delete selected pizza");
+        Button deletePizzaButton = new Button("Delete pizza");
         deletePizzaButton.getStyleClass().add("delete_button");
         deletePizzaButton.setOnAction((event) -> controller.deletePizza());
         bottomPane.getChildren().add(deletePizzaButton);
@@ -145,7 +145,7 @@ public class Main extends Application {
         addToppingButton.getStyleClass().add("add_button");
         addToppingButton.setOnAction((event) -> controller.createNewTopping());
         bottomPaneRight.getChildren().add(addToppingButton);
-        Button deleteToppingButton = new Button("Delete selected topping");
+        Button deleteToppingButton = new Button("Delete topping");
         deleteToppingButton.getStyleClass().add("delete_button");
         deleteToppingButton.setOnAction((event) -> controller.deleteTopping());
         bottomPaneRight.getChildren().add(deleteToppingButton);

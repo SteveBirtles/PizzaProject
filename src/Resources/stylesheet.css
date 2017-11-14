@@ -14,10 +14,12 @@
     -fx-pref-width: 200;
     -fx-font-size: 16;
     -fx-text-fill: darkgreen;
+    -fx-font-family: "Arial";
 }
 
 .delete_button {
     -fx-pref-width: 200;
     -fx-font-size: 16;
     -fx-text-fill: red;
+    -fx-font-family: "Arial";
 }
