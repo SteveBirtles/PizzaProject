@@ -125,14 +125,17 @@ public class MainController {
         dialog.setTitle("Create new pizza");
         dialog.setHeaderText(null);
         dialog.setContentText("Pizza's name:");
-
         Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()){
+
+        if (result.isPresent() && !result.get().equals("")){
             Pizza newPizza = new Pizza(0, result.get());
             PizzaService.save(newPizza, database);
 
             Topping selectedTopping = toppingList.getSelectionModel().getSelectedItem();
             updateLists(database.lastNewId(), selectedTopping != null ? selectedTopping.getId() : 0);
+        }
+        else {
+            displayError("No name provided.");
         }
 
     }
@@ -144,6 +147,11 @@ public class MainController {
     public void deletePizza() {
 
         Pizza selectedPizza = pizzaList.getSelectionModel().getSelectedItem();
+
+        if (selectedPizza == null) {
+            displayError("No pizza selected.");
+            return;
+        }
 
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Delete pizza");
@@ -167,19 +175,21 @@ public class MainController {
 
     public void createNewTopping() {
 
-
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Create new topping");
         dialog.setHeaderText(null);
         dialog.setContentText("Topping's name:");
 
         Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()){
+        if (result.isPresent() && !result.get().equals("")){
             Topping newTopping = new Topping(0, result.get());
             ToppingService.save(newTopping, database);
 
             Pizza selectedPizza = pizzaList.getSelectionModel().getSelectedItem();
             updateLists(selectedPizza != null ? selectedPizza.getId() : 0, database.lastNewId());
+        }
+        else {
+            displayError("No name provided.");
         }
 
     }
@@ -191,6 +201,10 @@ public class MainController {
     public void deleteTopping() {
 
         Topping selectedTopping = toppingList.getSelectionModel().getSelectedItem();
+        if (selectedTopping == null) {
+            displayError("No topping selected.");
+            return;
+        }
 
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Delete topping");
@@ -216,7 +230,15 @@ public class MainController {
 
         Pizza selectedPizza = pizzaList.getSelectionModel().getSelectedItem();
         Topping selectedTopping = toppingList.getSelectionModel().getSelectedItem();
-        if (selectedPizza == null || selectedTopping == null) return;
+
+        if (selectedPizza == null) {
+            displayError("No pizza has been selected.");
+            return;
+        }
+        if (selectedTopping == null) {
+            displayError("No topping has been selected.");
+            return;
+        }
 
         PizzaTopping newTopping = new PizzaTopping(selectedPizza.getId(), selectedTopping.getId());
         PizzaService.savePizzaTopping(newTopping, database);
@@ -228,11 +250,20 @@ public class MainController {
      * This deletes a new entry from the many-to-many PizzaTopping table.
      */
 
+    @SuppressWarnings("Duplicates")
     public void removeTopping() {
 
         Pizza selectedPizza = pizzaList.getSelectionModel().getSelectedItem();
         Topping selectedPizzaTopping = pizzaToppingList.getSelectionModel().getSelectedItem();
-        if (selectedPizza == null || selectedPizzaTopping == null) return;
+
+        if (selectedPizza == null) {
+            displayError("No pizza has been selected.");
+            return;
+        }
+        if (selectedPizzaTopping == null) {
+            displayError("No topping has been selected.");
+            return;
+        }
 
         PizzaService.deletePizzaTopping(selectedPizza.getId(), selectedPizzaTopping.getId(), database);
         updateLists(selectedPizza != null ? selectedPizza.getId() : 0, selectedPizzaTopping.getId());
@@ -258,4 +289,19 @@ public class MainController {
         }
 
     }
+
+    /**
+     * A simple method to display an error message.
+     */
+
+    private void displayError(String errorMessage) {
+
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText(errorMessage);
+        alert.showAndWait();
+
+    }
+
 }
