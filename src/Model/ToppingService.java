@@ -9,7 +9,7 @@ public class ToppingService {
 
     public static void selectAll(List<Topping> targetList, DatabaseConnection database) {
 
-        PreparedStatement statement = database.newStatement("SELECT id, name FROM Toppings ORDER BY name");
+        PreparedStatement statement = database.newStatement("SELECT id, name, toppingtypeid FROM Toppings ORDER BY name");
 
         try {
             if (statement != null) {
@@ -20,7 +20,8 @@ public class ToppingService {
                     while (results.next()) {
                         targetList.add(new Topping(
                                 results.getInt("id"),
-                                results.getString("name")
+                                results.getString("name"),
+                                results.getInt("toppingtypeid")
                         ));
                     }
                 }
@@ -34,7 +35,7 @@ public class ToppingService {
 
         Topping result = null;
 
-        PreparedStatement statement = database.newStatement("SELECT id, name FROM Toppings WHERE id = ?");
+        PreparedStatement statement = database.newStatement("SELECT id, name, toppingtypeid FROM Toppings WHERE id = ?");
 
         try {
             if (statement != null) {
@@ -44,6 +45,33 @@ public class ToppingService {
 
                 if (results != null) {
                     result = new Topping(
+                            results.getInt("id"),
+                            results.getString("name"),
+                            results.getInt("toppingtypeid"));
+                }
+            }
+        } catch (SQLException resultsException) {
+            System.out.println("Database select by id error: " + resultsException.getMessage());
+        }
+
+        return result;
+    }
+
+    @SuppressWarnings("Duplicates")
+    public static ToppingType selectToppingTypeById(int id, DatabaseConnection database) {
+
+        ToppingType result = null;
+
+        PreparedStatement statement = database.newStatement("SELECT id, name FROM ToppingTypes WHERE id = ?");
+
+        try {
+            if (statement != null) {
+
+                statement.setInt(1, id);
+                ResultSet results = database.executeQuery(statement);
+
+                if (results != null) {
+                    result = new ToppingType(
                             results.getInt("id"),
                             results.getString("name"));
                 }
@@ -55,6 +83,7 @@ public class ToppingService {
         return result;
     }
 
+
     public static void save(Topping itemToSave, DatabaseConnection database) {
 
         Topping existingItem = null;
@@ -62,14 +91,16 @@ public class ToppingService {
 
         try {
             if (existingItem == null) {
-                PreparedStatement statement = database.newStatement("INSERT INTO Toppings (name) VALUES (?)");
+                PreparedStatement statement = database.newStatement("INSERT INTO Toppings (name, toppingtypeid) VALUES (?, ?)");
                 statement.setString(1, itemToSave.getName());
+                statement.setInt(2, itemToSave.getToppingTypeId());
                 database.executeUpdate(statement);
             }
             else {
-                PreparedStatement statement = database.newStatement("UPDATE Toppings SET name = ? WHERE id = ?");
+                PreparedStatement statement = database.newStatement("UPDATE Toppings SET name = ?, toppingtypeid = ? WHERE id = ?");
                 statement.setString(1, itemToSave.getName());
-                statement.setInt(2, itemToSave.getId());
+                statement.setInt(2, itemToSave.getToppingTypeId());
+                statement.setInt(3, itemToSave.getId());
                 database.executeUpdate(statement);
             }
         } catch (SQLException resultsException) {

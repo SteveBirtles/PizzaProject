@@ -1,13 +1,13 @@
 import Controller.MainController;
 import Model.Pizza;
 import Model.Topping;
+import Model.ToppingView;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -23,7 +23,7 @@ public class Main extends Application {
 
     private static ListView<Pizza> pizzaList = new ListView<>();
     private static ListView<Topping> pizzaToppingList = new ListView<>();
-    private static ListView<Topping> toppingList = new ListView<>();
+    private static TableView<ToppingView> toppingTable = new TableView<>();
 
     /**
      * Here is the start point of the program.
@@ -32,7 +32,7 @@ public class Main extends Application {
 
     public static void main(String[] args) {
 
-        controller = new MainController(pizzaList, pizzaToppingList, toppingList);
+        controller = new MainController(pizzaList, pizzaToppingList, toppingTable);
 
         launch(args);
     }
@@ -96,7 +96,7 @@ public class Main extends Application {
         Label pizzaToppingsHeading = new Label("Toppings Applied:");
         pizzaToppingsHeading.getStyleClass().add("heading");
         centerPane.getChildren().add(pizzaToppingsHeading);
-        pizzaToppingList.setMaxWidth(280);
+        pizzaToppingList.setMaxWidth(230);
         pizzaToppingList.setPrefHeight(400);
         centerPane.getChildren().add(pizzaToppingList);
         Button applyToppingButton = new Button("Apply topping");
@@ -111,19 +111,31 @@ public class Main extends Application {
         centerPane.setAlignment(Pos.TOP_CENTER);
         BorderPane.setAlignment(centerPane, Pos.CENTER);
 
-        /* Right section of root BorderPane, containing the list of toppings available. */
+        /* Right section of root BorderPane, containing the table of toppings available. */
 
         VBox rightPane = new VBox(20);
         rightPane.setPadding(new Insets(30));
         Label toppingHeading = new Label("Available Toppings:");
         toppingHeading.getStyleClass().add("heading");
         rightPane.getChildren().add(toppingHeading);
-        toppingList.setPrefWidth(280);
-        toppingList.setPrefHeight(500);
-        rightPane.getChildren().add(toppingList);
+        toppingTable.setPrefWidth(330);
+        toppingTable.setPrefHeight(500);
+        rightPane.getChildren().add(toppingTable);
         root.setRight(rightPane);
         rightPane.setAlignment(Pos.TOP_CENTER);
         BorderPane.setAlignment(rightPane, Pos.CENTER_RIGHT);
+
+        TableColumn<ToppingView, String> toppingNameColumn = new TableColumn<>("Topping");
+        toppingNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        toppingNameColumn.prefWidthProperty().bind(toppingTable.widthProperty().multiply(0.63));
+        toppingNameColumn.setResizable(false);
+        toppingTable.getColumns().add(toppingNameColumn);
+
+        TableColumn<ToppingView, String> toppingTypeColumn = new TableColumn<>("Type");
+        toppingTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+        toppingTypeColumn.prefWidthProperty().bind(toppingTable.widthProperty().multiply(0.31));
+        toppingTypeColumn.setResizable(false);
+        toppingTable.getColumns().add(toppingTypeColumn);
 
         /* Bottom section of root BorderPane, containing the buttons to create and delete pizzas and toppings. */
 

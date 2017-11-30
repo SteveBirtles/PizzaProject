@@ -2,10 +2,8 @@ package Controller;
 
 import Model.*;
 import javafx.collections.FXCollections;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextInputDialog;
+import javafx.collections.ObservableList;
+import javafx.scene.control.*;
 import javafx.stage.WindowEvent;
 
 import java.util.ArrayList;
@@ -17,7 +15,7 @@ public class MainController {
 
     private ListView<Pizza> pizzaList;
     private ListView<Topping> pizzaToppingList;
-    private ListView<Topping> toppingList;
+    private TableView<ToppingView> toppingTable;
 
     /* Here are the vital constructs required for accessing/organising all the data: */
 
@@ -31,13 +29,13 @@ public class MainController {
      * finally populates the lists which the initial data.
      */
 
-    public MainController(ListView<Pizza> pizzaList, ListView<Topping> pizzaToppingList, ListView<Topping> toppingList) {
+    public MainController(ListView<Pizza> pizzaList, ListView<Topping> pizzaToppingList, TableView<ToppingView> toppingTable) {
 
         System.out.println("Initialising main controller...");
 
         this.pizzaList = pizzaList;
         this.pizzaToppingList = pizzaToppingList;
-        this.toppingList = toppingList;
+        this.toppingTable = toppingTable;
 
         database = new DatabaseConnection("PizzaDatabase.db");
         updateLists(0, 0);
@@ -54,7 +52,16 @@ public class MainController {
 
         allToppings.clear();
         ToppingService.selectAll(allToppings, database);
-        toppingList.setItems(FXCollections.observableArrayList(allToppings));
+
+        ArrayList<ToppingView> toppingViews = new ArrayList<>();
+        for (Topping t: allToppings) {
+            toppingViews.add(new ToppingView(
+                    t.getId(),
+                    t.getName(),
+                    ToppingService.selectToppingTypeById(t.getToppingTypeId(), database).getName()));
+        }
+
+        toppingTable.setItems(FXCollections.observableList(toppingViews));
 
         pizzaList.getItems().clear();
         PizzaService.selectAll(pizzaList.getItems(), database);
@@ -71,11 +78,11 @@ public class MainController {
         }
 
         if (selectedToppingId != 0) {
-            for (int n = 0; n < toppingList.getItems().size(); n++) {
-                if (toppingList.getItems().get(n).getId() == selectedToppingId) {
-                    toppingList.getSelectionModel().select(n);
-                    toppingList.getFocusModel().focus(n);
-                    toppingList.scrollTo(n);
+            for (int n = 0; n < toppingTable.getItems().size(); n++) {
+                if (toppingTable.getItems().get(n).getId() == selectedToppingId) {
+                    toppingTable.getSelectionModel().select(n);
+                    toppingTable.getFocusModel().focus(n);
+                    toppingTable.scrollTo(n);
                     break;
                 }
             }
@@ -102,14 +109,17 @@ public class MainController {
         }
 
         pizzaToppingList.getItems().clear();
-        toppingList.getItems().clear();
+        toppingTable.getItems().clear();
 
         for (Topping t: allToppings) {
             if (currentToppingIds.contains(t.getId())) {
                 pizzaToppingList.getItems().add(t);
             }
             else {
-                toppingList.getItems().add(t);
+                toppingTable.getItems().add(new ToppingView(
+                        t.getId(),
+                        t.getName(),
+                        ToppingService.selectToppingTypeById(t.getToppingTypeId(), database).getName()));
             }
         }
 
@@ -131,7 +141,7 @@ public class MainController {
             Pizza newPizza = new Pizza(0, result.get());
             PizzaService.save(newPizza, database);
 
-            Topping selectedTopping = toppingList.getSelectionModel().getSelectedItem();
+            ToppingView selectedTopping = toppingTable.getSelectionModel().getSelectedItem();
             updateLists(database.lastNewId(), selectedTopping != null ? selectedTopping.getId() : 0);
         }
         else {
@@ -163,7 +173,7 @@ public class MainController {
             PizzaService.deleteById(selectedPizza.getId(), database);
             PizzaService.deletePizzaToppingsByPizzaId(selectedPizza.getId(), database);
 
-            Topping selectedTopping = toppingList.getSelectionModel().getSelectedItem();
+            ToppingView selectedTopping = toppingTable.getSelectionModel().getSelectedItem();
             updateLists(0, selectedTopping != null ? selectedTopping.getId() : 0);
         }
 
@@ -182,7 +192,7 @@ public class MainController {
 
         Optional<String> result = dialog.showAndWait();
         if (result.isPresent() && !result.get().equals("")){
-            Topping newTopping = new Topping(0, result.get());
+            Topping newTopping = new Topping(0, result.get(), 1);
             ToppingService.save(newTopping, database);
 
             Pizza selectedPizza = pizzaList.getSelectionModel().getSelectedItem();
@@ -200,7 +210,7 @@ public class MainController {
 
     public void deleteTopping() {
 
-        Topping selectedTopping = toppingList.getSelectionModel().getSelectedItem();
+        ToppingView selectedTopping = toppingTable.getSelectionModel().getSelectedItem();
         if (selectedTopping == null) {
             displayError("No topping selected.");
             return;
@@ -229,7 +239,7 @@ public class MainController {
     public void applyTopping() {
 
         Pizza selectedPizza = pizzaList.getSelectionModel().getSelectedItem();
-        Topping selectedTopping = toppingList.getSelectionModel().getSelectedItem();
+        ToppingView selectedTopping = toppingTable.getSelectionModel().getSelectedItem();
 
         if (selectedPizza == null) {
             displayError("No pizza has been selected.");

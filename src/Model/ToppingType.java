@@ -1,15 +1,13 @@
 package Model;
 
-public class Topping {
+public class ToppingType {
 
     private int id;
     private String name;
-    private int toppingTypeId;
 
-    public Topping(int id, String name, int toppingTypeId) {
+    public ToppingType(int id, String name) {
         this.id = id;
         this.name = name;
-        this.toppingTypeId = toppingTypeId;
     }
 
     public int getId() {
@@ -26,14 +24,6 @@ public class Topping {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public int getToppingTypeId() {
-        return toppingTypeId;
-    }
-
-    public void setToppingTypeId(int toppingTypeId) {
-        this.toppingTypeId = toppingTypeId;
     }
 
     @Override
