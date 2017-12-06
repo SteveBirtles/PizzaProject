@@ -31,6 +31,35 @@ public class ToppingService {
         }
     }
 
+    public static void selectForTable(List<ToppingView> targetList, DatabaseConnection database) {
+
+        PreparedStatement statement = database.newStatement(
+                "SELECT Toppings.id As 'id', ToppingTypes.name As 'tid', Toppings.name As 'name', ToppingTypes.name As 'type' FROM Toppings" +
+                        " INNER JOIN ToppingTypes ON Toppings.ToppingTypeId = ToppingTypes.Id" +
+                        " ORDER BY Toppings.name"
+        );
+
+        try {
+            if (statement != null) {
+
+                ResultSet results = database.executeQuery(statement);
+
+                if (results != null) {
+                    while (results.next()) {
+                        targetList.add(new ToppingView(
+                                results.getInt("id"),
+                                results.getInt("tid"),
+                                results.getString("name"),
+                                results.getString("type")
+                        ));
+                    }
+                }
+            }
+        } catch (SQLException resultsException) {
+            System.out.println("Database select all error: " + resultsException.getMessage());
+        }
+    }
+
     public static Topping selectById(int id, DatabaseConnection database) {
 
         Topping result = null;

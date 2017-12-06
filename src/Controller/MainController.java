@@ -20,7 +20,7 @@ public class MainController {
     /* Here are the vital constructs required for accessing/organising all the data: */
 
     private DatabaseConnection database;
-    private ArrayList<Topping> allToppings = new ArrayList<>();
+    private ArrayList<ToppingView> allToppingViews = new ArrayList<>();
     private ArrayList<PizzaTopping> currentToppings = new ArrayList<>();
 
     /**
@@ -50,18 +50,10 @@ public class MainController {
     @SuppressWarnings("Duplicates")
     public void updateLists(int selectedPizzaId, int selectedToppingId) {
 
-        allToppings.clear();
-        ToppingService.selectAll(allToppings, database);
+        allToppingViews.clear();
+        ToppingService.selectForTable(allToppingViews, database);
 
-        ArrayList<ToppingView> toppingViews = new ArrayList<>();
-        for (Topping t: allToppings) {
-            toppingViews.add(new ToppingView(
-                    t.getId(),
-                    t.getName(),
-                    ToppingService.selectToppingTypeById(t.getToppingTypeId(), database).getName()));
-        }
-
-        toppingTable.setItems(FXCollections.observableList(toppingViews));
+        toppingTable.setItems(FXCollections.observableList(allToppingViews));
 
         pizzaList.getItems().clear();
         PizzaService.selectAll(pizzaList.getItems(), database);
@@ -109,19 +101,22 @@ public class MainController {
         }
 
         pizzaToppingList.getItems().clear();
-        toppingTable.getItems().clear();
 
-        for (Topping t: allToppings) {
+        ArrayList<ToppingView> toppingTableList = new ArrayList<>();
+
+        allToppingViews.clear();
+        ToppingService.selectForTable(allToppingViews, database);
+
+        for (ToppingView t: allToppingViews) {
             if (currentToppingIds.contains(t.getId())) {
-                pizzaToppingList.getItems().add(t);
+                pizzaToppingList.getItems().add(new Topping(t.getId(), t.getName(), t.getToppingTypeId()));
             }
             else {
-                toppingTable.getItems().add(new ToppingView(
-                        t.getId(),
-                        t.getName(),
-                        ToppingService.selectToppingTypeById(t.getToppingTypeId(), database).getName()));
+                toppingTableList.add(t);
             }
         }
+
+        toppingTable.setItems(FXCollections.observableList(toppingTableList));
 
     }
 
